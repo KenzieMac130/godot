@@ -53,6 +53,7 @@
 #define RB_SCOPE_SSIL SNAME("rb_ssil")
 #define RB_SCOPE_SSAO SNAME("rb_ssao")
 #define RB_SCOPE_SSR SNAME("rb_ssr")
+#define RB_SCOPE_TRACE_SHADOWS SNAME("rb_trace_shadows")
 
 #define RB_LINEAR_DEPTH SNAME("linear_depth")
 #define RB_FINAL SNAME("final")
@@ -159,6 +160,16 @@ public:
 	void sss_set_scale(float p_scale, float p_depth_scale);
 
 	void sub_surface_scattering(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_diffuse, RID p_depth, const Projection &p_camera, const Size2i &p_screen_size);
+
+
+	/* Contact shadows */
+	struct TraceShadowsRenderBuffers {
+		int buffer_width;
+		int buffer_height;
+	};
+
+	void trace_shadows_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_shadow_trace_buffers);
+	void screen_space_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadow_buffers, uint32_t p_view, const Projection &p_projection);
 
 private:
 	/* Settings */

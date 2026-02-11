@@ -141,6 +141,9 @@ void LightStorage::_light_initialize(RID p_light, RS::LightType p_type) {
 	light.param[RS::LIGHT_PARAM_SHADOW_PANCAKE_SIZE] = 20.0;
 	light.param[RS::LIGHT_PARAM_TRANSMITTANCE_BIAS] = 0.05;
 	light.param[RS::LIGHT_PARAM_INTENSITY] = p_type == RS::LIGHT_DIRECTIONAL ? 100000.0 : 1000.0;
+	light.param[RS::LIGHT_PARAM_CONTACT_SHADOW_THICKNESS] = 0.05;
+	light.param[RS::LIGHT_PARAM_CONTACT_SHADOW_EDGE_TOLERANCE] = 0.02;
+	light.param[RS::LIGHT_PARAM_CONTACT_SHADOW_POWER] = 4.0;
 
 	light_owner.initialize_rid(p_light, light);
 }
@@ -323,6 +326,26 @@ void LightStorage::light_set_max_sdfgi_cascade(RID p_light, uint32_t p_cascade) 
 	ERR_FAIL_NULL(light);
 
 	light->max_sdfgi_cascade = p_cascade;
+
+	light->version++;
+	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
+}
+
+void LightStorage::light_set_contact_shadow(RID p_light, bool p_enable) {
+	Light *light = light_owner.get_or_null(p_light);
+	ERR_FAIL_NULL(light);
+
+	light->contact_shadow = p_enable;
+
+	light->version++;
+	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
+}
+
+void LightStorage::light_set_contact_shadow_priority(RID p_light, int32_t p_priority) {
+	Light *light = light_owner.get_or_null(p_light);
+	ERR_FAIL_NULL(light);
+
+	light->contact_shadow_priority = p_priority;
 
 	light->version++;
 	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);

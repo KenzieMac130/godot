@@ -560,6 +560,9 @@ public:
 		LIGHT_PARAM_SHADOW_BLUR,
 		LIGHT_PARAM_TRANSMITTANCE_BIAS,
 		LIGHT_PARAM_INTENSITY,
+		LIGHT_PARAM_CONTACT_SHADOW_THICKNESS,
+		LIGHT_PARAM_CONTACT_SHADOW_EDGE_TOLERANCE,
+		LIGHT_PARAM_CONTACT_SHADOW_POWER,
 		LIGHT_PARAM_MAX
 	};
 
@@ -576,6 +579,9 @@ public:
 	virtual void light_set_distance_fade(RID p_light, bool p_enabled, float p_begin, float p_shadow, float p_length) = 0;
 	virtual void light_set_reverse_cull_face_mode(RID p_light, bool p_enabled) = 0;
 	virtual void light_set_shadow_caster_mask(RID p_light, uint32_t p_caster_mask) = 0;
+
+	virtual void light_set_contact_shadow(RID p_light, bool p_enable) = 0;
+	virtual void light_set_contact_shadow_priority(RID p_light, int32_t p_priority) = 0;
 
 	enum LightBakeMode {
 		LIGHT_BAKE_DISABLED,
@@ -1139,6 +1145,7 @@ public:
 		VIEWPORT_DEBUG_DRAW_SCENE_LUMINANCE,
 		VIEWPORT_DEBUG_DRAW_SSAO,
 		VIEWPORT_DEBUG_DRAW_SSIL,
+		VIEWPORT_DEBUG_DRAW_TRACE_SHADOWS,
 		VIEWPORT_DEBUG_DRAW_PSSM_SPLITS,
 		VIEWPORT_DEBUG_DRAW_DECAL_ATLAS,
 		VIEWPORT_DEBUG_DRAW_SDFGI,

@@ -80,6 +80,8 @@ private:
 		RS::LightDirectionalShadowMode directional_shadow_mode = RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL;
 		bool directional_blend_splits = false;
 		RS::LightDirectionalSkyMode directional_sky_mode = RS::LIGHT_DIRECTIONAL_SKY_MODE_LIGHT_AND_SKY;
+		bool contact_shadow = false;
+		int32_t contact_shadow_priority = 0;
 		uint64_t version = 0;
 
 		Dependency dependency;
@@ -498,6 +500,9 @@ public:
 	virtual uint32_t light_get_shadow_caster_mask(RID p_light) const override;
 	virtual void light_set_bake_mode(RID p_light, RS::LightBakeMode p_bake_mode) override;
 	virtual void light_set_max_sdfgi_cascade(RID p_light, uint32_t p_cascade) override;
+
+	virtual void light_set_contact_shadow(RID p_light, bool p_enable) override;
+	virtual void light_set_contact_shadow_priority(RID p_light, int32_t p_priority) override;
 
 	virtual void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) override;
 

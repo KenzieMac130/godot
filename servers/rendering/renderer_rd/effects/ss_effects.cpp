@@ -1468,6 +1468,17 @@ void SSEffects::ssr_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers,
 	}
 }
 
+void SSEffects::trace_shadows_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_shadow_trace_buffers) {
+	uint32_t view_count = p_render_buffers->get_view_count();
+	Size2i full_size = p_render_buffers->get_internal_size(); // todo: Kenzie: downscaling?
+
+	p_render_buffers->create_texture(RB_SCOPE_TRACE_SHADOWS, RB_FINAL, RD::DATA_FORMAT_R32_UINT, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT, RD::TEXTURE_SAMPLES_1, full_size, view_count);
+}
+
+void SSEffects::screen_space_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadow_buffers, uint32_t p_view, const Projection &p_projection) {
+	// todo: Kenzie
+}
+
 void SSEffects::screen_space_reflection(Ref<RenderSceneBuffersRD> p_render_buffers, SSRRenderBuffers &p_ssr_buffers, const RID *p_normal_roughness_slices, int p_max_steps, float p_fade_in, float p_fade_out, float p_tolerance, const Projection *p_projections, const Projection *p_reprojections, const Vector3 *p_eye_offsets, RendererRD::CopyEffects &p_copy_effects) {
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	ERR_FAIL_NULL(uniform_set_cache);

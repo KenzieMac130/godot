@@ -154,6 +154,24 @@ uint32_t Light3D::get_shadow_caster_mask() const {
 	return shadow_caster_mask;
 }
 
+void Light3D::set_contact_shadow(bool p_enable) {
+	contact_shadow = p_enable;
+	RS::get_singleton()->light_set_contact_shadow(light, contact_shadow);
+}
+
+bool Light3D::has_contact_shadow() const {
+	return contact_shadow;
+}
+
+void Light3D::set_contact_shadow_priority(int32_t p_priority) {
+	contact_shadow_priority = p_priority;
+	RS::get_singleton()->light_set_contact_shadow_priority(light, contact_shadow_priority);
+}
+
+int32_t Light3D::get_contact_shadow_priority() const {
+	return contact_shadow_priority;
+}
+
 AABB Light3D::get_aabb() const {
 	if (type == RenderingServer::LIGHT_DIRECTIONAL) {
 		return AABB(Vector3(-1, -1, -1), Vector3(2, 2, 2));
@@ -371,6 +389,12 @@ void Light3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_shadow_caster_mask", "caster_mask"), &Light3D::set_shadow_caster_mask);
 	ClassDB::bind_method(D_METHOD("get_shadow_caster_mask"), &Light3D::get_shadow_caster_mask);
 
+	ClassDB::bind_method(D_METHOD("set_contact_shadow", "enabled"), &Light3D::set_contact_shadow);
+	ClassDB::bind_method(D_METHOD("has_contact_shadow"), &Light3D::has_contact_shadow);
+
+	ClassDB::bind_method(D_METHOD("set_contact_shadow_priority", "priority"), &Light3D::set_contact_shadow_priority);
+	ClassDB::bind_method(D_METHOD("get_contact_shadow_priority"), &Light3D::get_contact_shadow_priority);
+
 	ClassDB::bind_method(D_METHOD("set_bake_mode", "bake_mode"), &Light3D::set_bake_mode);
 	ClassDB::bind_method(D_METHOD("get_bake_mode"), &Light3D::get_bake_mode);
 
@@ -407,6 +431,13 @@ void Light3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "shadow_opacity", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_param", "get_param", PARAM_SHADOW_OPACITY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "shadow_blur", PROPERTY_HINT_RANGE, "0,10,0.001"), "set_param", "get_param", PARAM_SHADOW_BLUR);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "shadow_caster_mask", PROPERTY_HINT_LAYERS_3D_RENDER), "set_shadow_caster_mask", "get_shadow_caster_mask");
+	
+	ADD_SUBGROUP("Contact Shadow", "contact_shadow_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "contact_shadow_enabled", PROPERTY_HINT_GROUP_ENABLE), "set_contact_shadow", "has_contact_shadow");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "contact_shadow_priority"), "set_contact_shadow_priority", "get_contact_shadow_priority");
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadow_thickness", PROPERTY_HINT_RANGE, "0.01,1.0,0.01"), "set_param", "get_param", PARAM_CONTACT_SHADOW_THICKNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadow_edge_tolerance", PROPERTY_HINT_RANGE, "0.01,1.0,0.01"), "set_param", "get_param", PARAM_CONTACT_SHADOW_EDGE_TOLERANCE);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadow_power", PROPERTY_HINT_RANGE, "1,16,0.1"), "set_param", "get_param", PARAM_CONTACT_SHADOW_POWER);
 
 	ADD_GROUP("Distance Fade", "distance_fade_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "distance_fade_enabled", PROPERTY_HINT_GROUP_ENABLE), "set_enable_distance_fade", "is_distance_fade_enabled");
@@ -493,6 +524,9 @@ Light3D::Light3D(RenderingServer::LightType p_type) {
 	set_param(PARAM_SHADOW_FADE_START, 1);
 	// For OmniLight3D and SpotLight3D, specified in Lumens.
 	set_param(PARAM_INTENSITY, 1000.0);
+	set_param(PARAM_CONTACT_SHADOW_THICKNESS, 0.05);
+	set_param(PARAM_CONTACT_SHADOW_EDGE_TOLERANCE, 0.02);
+	set_param(PARAM_CONTACT_SHADOW_POWER, 4.0);
 	set_temperature(6500.0); // Nearly white.
 	set_disable_scale(true);
 }
