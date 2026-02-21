@@ -2582,7 +2582,8 @@ void RenderForwardClustered::_render_buffers_debug_draw(const RenderDataRD *p_re
 	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_TRACE_SHADOWS && rb->has_texture(RB_SCOPE_TRACE_SHADOWS, RB_FINAL)) {
 		RID final = rb->get_texture_slice(RB_SCOPE_TRACE_SHADOWS, RB_FINAL, 0, 0);
 		Size2i rtsize = texture_storage->render_target_get_size(render_target);
-		copy_effects->copy_to_fb_rect(final, texture_storage->render_target_get_rd_framebuffer(render_target), Rect2(Vector2(), rtsize), false, false);
+		//copy_effects->copy_to_fb_rect(final, texture_storage->render_target_get_rd_framebuffer(render_target), Rect2(Vector2(), rtsize), false, false, false, false, RID(), false, false, false, false, Rect2(), 1.0f, true);
+		// todo: Kenzie (implement trace shadows debug visualizer)
 	}
 
 	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_GI_BUFFER && rb->has_texture(RB_SCOPE_GI, RB_TEX_AMBIENT)) {
@@ -3943,6 +3944,12 @@ void RenderForwardClustered::sub_surface_scattering_set_quality(RS::SubSurfaceSc
 void RenderForwardClustered::sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) {
 	ERR_FAIL_NULL(ss_effects);
 	ss_effects->sss_set_scale(p_scale, p_depth_scale);
+}
+
+void RenderForwardClustered::contact_shadows_set_quality(RS::ContactShadowQuality p_quality) {
+	ERR_FAIL_NULL(ss_effects);
+	ERR_FAIL_COND(p_quality < RS::ContactShadowQuality::CONTACT_SHADOWS_QUALITY_DISABLED || p_quality > RS::ContactShadowQuality::CONTACT_SHADOWS_QUALITY_HIGH);
+	ss_effects->contact_shadows_set_quality(p_quality);
 }
 
 RenderForwardClustered *RenderForwardClustered::singleton = nullptr;

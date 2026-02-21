@@ -464,7 +464,7 @@ public:
 	FUNC2(light_set_max_sdfgi_cascade, RID, uint32_t)
 
 	FUNC2(light_set_contact_shadow, RID, bool);
-	FUNC2(light_set_contact_shadow_priority, RID, int32_t)
+	FUNC2(light_set_contact_shadows_priority, RID, int32_t)
 
 	FUNC2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
 
@@ -856,6 +856,8 @@ public:
 	FUNC3(screen_space_roughness_limiter_set_active, bool, float, float)
 	FUNC1(sub_surface_scattering_set_quality, SubSurfaceScatteringQuality)
 	FUNC2(sub_surface_scattering_set_scale, float, float)
+
+	FUNC1(contact_shadows_set_quality, ContactShadowQuality)
 
 	FUNC1(positional_soft_shadow_filter_set_quality, ShadowQuality);
 	FUNC1(directional_soft_shadow_filter_set_quality, ShadowQuality);

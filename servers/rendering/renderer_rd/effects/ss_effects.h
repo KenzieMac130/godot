@@ -46,6 +46,7 @@
 #include "servers/rendering/renderer_rd/shaders/effects/ssil_importance_map.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/ssil_interleave.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/subsurface_scattering.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/effects/contact_shadows.glsl.gen.h"
 #include "servers/rendering/rendering_server.h"
 
 #define RB_SCOPE_SSLF SNAME("rb_sslf")
@@ -168,8 +169,10 @@ public:
 		int buffer_height;
 	};
 
+	void contact_shadows_set_quality(RS::ContactShadowQuality p_quality);
+
 	void trace_shadows_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_shadow_trace_buffers);
-	void screen_space_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadow_buffers, uint32_t p_view, const Projection &p_projection);
+	void contact_shadows_render(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadows_buffers, uint32_t p_view, const Projection &p_projection);
 
 private:
 	/* Settings */
@@ -193,6 +196,8 @@ private:
 	RS::SubSurfaceScatteringQuality sss_quality = RS::SUB_SURFACE_SCATTERING_QUALITY_MEDIUM;
 	float sss_scale = 0.05;
 	float sss_depth_scale = 0.01;
+
+	RS::ContactShadowQuality contact_shadows_quality = RS::CONTACT_SHADOWS_QUALITY_MEDIUM;
 
 	/* SS Downsampler */
 
@@ -538,6 +543,35 @@ private:
 		RID shader_version;
 		PipelineDeferredRD pipelines[SUBSURFACE_SCATTERING_MODE_MAX];
 	} sss;
+
+	/* Contact Shadows */
+	enum ContactShadowMode {
+		CONTACT_SHADOWS_MODE_LOW_QUALITY,
+		CONTACT_SHADOWS_MODE_MODE_MEDIUM_QUALITY,
+		CONTACT_SHADOWS_MODE_MODE_HIGH_QUALITY,
+		CONTACT_SHADOWS_MODE_MODE_MAX
+	};
+
+	struct ContactShadowPushConstant {
+		int32_t screen_size[2];
+		float camera_z_far;
+		float camera_z_near;
+
+		uint32_t vertical;
+		uint32_t orthogonal;
+		float unit_size;
+		float scale;
+
+		float depth_scale;
+		uint32_t pad[3];
+	};
+
+	struct ContactShadows {
+		ContactShadowPushConstant push_constant;
+		ContactShadowsShaderRD shader;
+		RID shader_version;
+		PipelineDeferredRD pipelines[CONTACT_SHADOWS_MODE_MODE_MAX];
+	} contact_shadows;
 };
 
 } // namespace RendererRD

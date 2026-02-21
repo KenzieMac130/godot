@@ -56,7 +56,8 @@ public:
 		SDFGI_MAX_CASCADES = 8,
 		SDFGI_MAX_REGIONS_PER_CASCADE = 3,
 		MAX_INSTANCE_PAIRS = 32,
-		MAX_UPDATE_SHADOWS = 512
+		MAX_UPDATE_SHADOWS = 512,
+		MAX_TRACE_SHADOWS = 8,
 	};
 
 	uint64_t render_pass;
@@ -695,6 +696,8 @@ public:
 
 		bool uses_projector = false;
 		bool uses_softshadow = false;
+		bool uses_trace_shadow = false;
+		int32_t trace_shadow_priority = 0;
 
 		HashSet<Instance *> geometries;
 
@@ -1005,6 +1008,9 @@ public:
 	RendererSceneRender::RenderShadowData render_shadow_data[MAX_UPDATE_SHADOWS];
 	uint32_t max_shadows_used = 0;
 
+	RendererSceneRender::RenderTraceShadowData render_trace_shadow_data[MAX_TRACE_SHADOWS];
+	uint32_t max_trace_shadows_used = 0;
+
 	RendererSceneRender::RenderSDFGIData render_sdfgi_data[SDFGI_MAX_CASCADES * SDFGI_MAX_REGIONS_PER_CASCADE];
 	RendererSceneRender::RenderSDFGIUpdateData sdfgi_update_data;
 
@@ -1074,6 +1080,8 @@ public:
 	_FORCE_INLINE_ void _update_dirty_instance(Instance *p_instance) const;
 	_FORCE_INLINE_ void _update_instance_lightmap_captures(Instance *p_instance) const;
 	void _unpair_instance(Instance *p_instance);
+
+	void _insert_trace_shadow_light(const RendererSceneRender::RenderTraceShadowData& p_data);
 
 	void _light_instance_setup_directional_shadow(int p_shadow_index, Instance *p_instance, const Transform3D p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect);
 
@@ -1375,6 +1383,8 @@ public:
 	PASS3(screen_space_roughness_limiter_set_active, bool, float, float)
 	PASS1(sub_surface_scattering_set_quality, RS::SubSurfaceScatteringQuality)
 	PASS2(sub_surface_scattering_set_scale, float, float)
+
+	PASS1(contact_shadows_set_quality, RS::ContactShadowQuality)
 
 	PASS1(positional_soft_shadow_filter_set_quality, RS::ShadowQuality)
 	PASS1(directional_soft_shadow_filter_set_quality, RS::ShadowQuality)

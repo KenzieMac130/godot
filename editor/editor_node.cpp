@@ -485,6 +485,9 @@ void EditorNode::_update_from_settings() {
 	float sss_depth_scale = GLOBAL_GET("rendering/environment/subsurface_scattering/subsurface_scattering_depth_scale");
 	RS::get_singleton()->sub_surface_scattering_set_scale(sss_scale, sss_depth_scale);
 
+	RS::ContactShadowQuality contact_shadows_quality = RS::ContactShadowQuality(int(GLOBAL_GET("rendering/lights_and_shadows/contact_shadow/contact_shadows_quality")));
+	RS::get_singleton()->contact_shadows_set_quality(contact_shadows_quality);
+
 	uint32_t directional_shadow_size = GLOBAL_GET("rendering/lights_and_shadows/directional_shadow/size");
 	uint32_t directional_shadow_16_bits = GLOBAL_GET("rendering/lights_and_shadows/directional_shadow/16_bits");
 	RS::get_singleton()->directional_shadow_atlas_set_size(directional_shadow_size, directional_shadow_16_bits);

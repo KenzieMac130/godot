@@ -83,7 +83,7 @@ public:
 	virtual void light_set_max_sdfgi_cascade(RID p_light, uint32_t p_cascade) override {}
 
 	virtual void light_set_contact_shadow(RID p_light, bool p_enable) override {};
-	virtual void light_set_contact_shadow_priority(RID p_light, int32_t p_priority) override {};
+	virtual void light_set_contact_shadows_priority(RID p_light, int32_t p_priority) override {};
 	
 	virtual void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) override {}
 
@@ -98,6 +98,7 @@ public:
 
 	virtual bool light_has_shadow(RID p_light) const override { return false; }
 	virtual bool light_has_projector(RID p_light) const override { return false; }
+	virtual bool light_has_contact_shadow(RID p_light) const override { return false; }
 
 	virtual RS::LightType light_get_type(RID p_light) const override { return RS::LIGHT_OMNI; }
 	virtual AABB light_get_aabb(RID p_light) const override { return AABB(); }

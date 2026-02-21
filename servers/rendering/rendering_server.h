@@ -560,9 +560,9 @@ public:
 		LIGHT_PARAM_SHADOW_BLUR,
 		LIGHT_PARAM_TRANSMITTANCE_BIAS,
 		LIGHT_PARAM_INTENSITY,
-		LIGHT_PARAM_CONTACT_SHADOW_THICKNESS,
-		LIGHT_PARAM_CONTACT_SHADOW_EDGE_TOLERANCE,
-		LIGHT_PARAM_CONTACT_SHADOW_POWER,
+		LIGHT_PARAM_CONTACT_SHADOWS_THICKNESS,
+		LIGHT_PARAM_CONTACT_SHADOWS_EDGE_TOLERANCE,
+		LIGHT_PARAM_CONTACT_SHADOWS_POWER,
 		LIGHT_PARAM_MAX
 	};
 
@@ -581,7 +581,7 @@ public:
 	virtual void light_set_shadow_caster_mask(RID p_light, uint32_t p_caster_mask) = 0;
 
 	virtual void light_set_contact_shadow(RID p_light, bool p_enable) = 0;
-	virtual void light_set_contact_shadow_priority(RID p_light, int32_t p_priority) = 0;
+	virtual void light_set_contact_shadows_priority(RID p_light, int32_t p_priority) = 0;
 
 	enum LightBakeMode {
 		LIGHT_BAKE_DISABLED,
@@ -1401,6 +1401,15 @@ public:
 	virtual void sub_surface_scattering_set_quality(SubSurfaceScatteringQuality p_quality) = 0;
 	virtual void sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) = 0;
 
+	enum ContactShadowQuality {
+		CONTACT_SHADOWS_QUALITY_DISABLED,
+		CONTACT_SHADOWS_QUALITY_LOW,
+		CONTACT_SHADOWS_QUALITY_MEDIUM,
+		CONTACT_SHADOWS_QUALITY_HIGH
+	};
+
+	virtual void contact_shadows_set_quality(ContactShadowQuality p_quality) = 0;
+
 	/* CAMERA EFFECTS */
 
 	virtual RID camera_attributes_create() = 0;
@@ -2011,6 +2020,7 @@ VARIANT_ENUM_CAST(RenderingServer::EnvironmentSDFGIRayCount);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentSDFGIFramesToUpdateLight);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentSDFGIYScale);
 VARIANT_ENUM_CAST(RenderingServer::SubSurfaceScatteringQuality);
+VARIANT_ENUM_CAST(RenderingServer::ContactShadowQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBlurQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBokehShape);
 VARIANT_ENUM_CAST(RenderingServer::ShadowQuality);

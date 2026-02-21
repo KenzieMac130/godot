@@ -414,9 +414,9 @@ private:
 		bool used_normal_texture = false;
 		bool used_depth_texture = false;
 		bool used_sss = false;
-		bool used_contact_shadows = false; //todo: kenzie use me
 		bool used_lightmap = false;
 		bool used_opaque_stencil = false;
+		bool used_contact_shadows = false;
 
 		struct ShadowPass {
 			uint32_t element_from;
@@ -785,6 +785,8 @@ protected:
 
 	virtual void sub_surface_scattering_set_quality(RS::SubSurfaceScatteringQuality p_quality) override;
 	virtual void sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) override;
+
+	virtual void contact_shadows_set_quality(RS::ContactShadowQuality p_quality) override;
 
 	/* Rendering */
 

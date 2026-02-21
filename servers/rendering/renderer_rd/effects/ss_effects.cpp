@@ -361,6 +361,25 @@ SSEffects::SSEffects() {
 			sss.pipelines[i].create_compute_pipeline(sss.shader.version_get_shader(sss.shader_version, i));
 		}
 	}
+
+	// Contact shadows
+	// todo: get global settings
+	//sss_depth_scale = GLOBAL_GET("rendering/environment/subsurface_scattering/subsurface_scattering_depth_scale");
+
+	{
+		Vector<String> contact_shadows_modes;
+		contact_shadows_modes.push_back("\n#define MAX_SAMPLES 30\n");
+		contact_shadows_modes.push_back("\n#define MAX_SAMPLES 60\n");
+		contact_shadows_modes.push_back("\n#define MAX_SAMPLES 120\n");
+
+		contact_shadows.shader.initialize(contact_shadows_modes);
+
+		contact_shadows.shader_version = contact_shadows.shader.version_create();
+
+		for (int i = 0; i < CONTACT_SHADOWS_MODE_MODE_MAX; i++) {
+			contact_shadows.pipelines[i].create_compute_pipeline(contact_shadows.shader.version_get_shader(contact_shadows.shader_version, i));
+		}
+	}
 }
 
 void SSEffects::allocate_last_frame_buffer(Ref<RenderSceneBuffersRD> p_render_buffers, bool p_use_ssil, bool p_use_ssr) {
@@ -492,6 +511,15 @@ SSEffects::~SSEffects() {
 		}
 
 		sss.shader.version_free(sss.shader_version);
+	}
+
+		{
+		// Cleanup Contact shadows
+		for (int i = 0; i < CONTACT_SHADOWS_MODE_MODE_MAX; i++) {
+			contact_shadows.pipelines[i].free();
+		}
+
+		contact_shadows.shader.version_free(sss.shader_version);
 	}
 
 	singleton = nullptr;
@@ -1468,17 +1496,6 @@ void SSEffects::ssr_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers,
 	}
 }
 
-void SSEffects::trace_shadows_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_shadow_trace_buffers) {
-	uint32_t view_count = p_render_buffers->get_view_count();
-	Size2i full_size = p_render_buffers->get_internal_size(); // todo: Kenzie: downscaling?
-
-	p_render_buffers->create_texture(RB_SCOPE_TRACE_SHADOWS, RB_FINAL, RD::DATA_FORMAT_R32_UINT, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT, RD::TEXTURE_SAMPLES_1, full_size, view_count);
-}
-
-void SSEffects::screen_space_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadow_buffers, uint32_t p_view, const Projection &p_projection) {
-	// todo: Kenzie
-}
-
 void SSEffects::screen_space_reflection(Ref<RenderSceneBuffersRD> p_render_buffers, SSRRenderBuffers &p_ssr_buffers, const RID *p_normal_roughness_slices, int p_max_steps, float p_fade_in, float p_fade_out, float p_tolerance, const Projection *p_projections, const Projection *p_reprojections, const Vector3 *p_eye_offsets, RendererRD::CopyEffects &p_copy_effects) {
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	ERR_FAIL_NULL(uniform_set_cache);
@@ -1823,4 +1840,39 @@ void SSEffects::sub_surface_scattering(Ref<RenderSceneBuffersRD> p_render_buffer
 
 		RD::get_singleton()->compute_list_end();
 	}
+}
+
+/* Contact shadows */
+void SSEffects::trace_shadows_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_shadow_trace_buffers) {
+	uint32_t view_count = p_render_buffers->get_view_count();
+	Size2i full_size = p_render_buffers->get_internal_size(); // todo: Kenzie: downscaling?
+
+	p_render_buffers->create_texture(RB_SCOPE_TRACE_SHADOWS, RB_FINAL, RD::DATA_FORMAT_R32_UINT, RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT, RD::TEXTURE_SAMPLES_1, full_size, view_count);
+}
+
+void SSEffects::contact_shadows_set_quality(RS::ContactShadowQuality p_quality) {
+	contact_shadows_quality = p_quality;
+}
+
+void SSEffects::contact_shadows_render(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadows_buffers, uint32_t p_view, const Projection &p_projection) {
+UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
+	ERR_FAIL_NULL(uniform_set_cache);
+	MaterialStorage *material_storage = MaterialStorage::get_singleton();
+	ERR_FAIL_NULL(material_storage);
+
+	// Obtain shadow texture
+	RID traced_shadows_output = p_render_buffers->get_texture_slice(RB_SCOPE_TRACE_SHADOWS, RB_FINAL, p_view, 0, 1, 1);
+
+
+	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
+	memset(&contact_shadows.push_constant, 0, sizeof(SSAOGatherPushConstant)); // needs to be big enoug for all lights!
+
+	RID shader = ssao.gather_shader.version_get_shader(contact_shadows.shader_version, contact_shadows_quality - 1);
+	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+
+	RD::get_singleton()->draw_command_begin_label("Contact Shadows");
+
+
+	// todo: implement my CPU loop here please
+	RD::get_singleton()->draw_command_end_label();
 }

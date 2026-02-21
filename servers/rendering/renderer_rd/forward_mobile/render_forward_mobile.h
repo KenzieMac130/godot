@@ -428,6 +428,8 @@ protected:
 	virtual void sub_surface_scattering_set_quality(RS::SubSurfaceScatteringQuality p_quality) override {}
 	virtual void sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) override {}
 
+	virtual void contact_shadows_set_quality(RS::ContactShadowQuality p_quality) override {}
+
 	/* Geometry instance */
 
 	class GeometryInstanceForwardMobile;

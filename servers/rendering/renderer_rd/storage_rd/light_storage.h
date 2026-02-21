@@ -81,7 +81,7 @@ private:
 		bool directional_blend_splits = false;
 		RS::LightDirectionalSkyMode directional_sky_mode = RS::LIGHT_DIRECTIONAL_SKY_MODE_LIGHT_AND_SKY;
 		bool contact_shadow = false;
-		int32_t contact_shadow_priority = 0;
+		int32_t contact_shadows_priority = 0;
 		uint64_t version = 0;
 
 		Dependency dependency;
@@ -502,7 +502,7 @@ public:
 	virtual void light_set_max_sdfgi_cascade(RID p_light, uint32_t p_cascade) override;
 
 	virtual void light_set_contact_shadow(RID p_light, bool p_enable) override;
-	virtual void light_set_contact_shadow_priority(RID p_light, int32_t p_priority) override;
+	virtual void light_set_contact_shadows_priority(RID p_light, int32_t p_priority) override;
 
 	virtual void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) override;
 
@@ -576,6 +576,12 @@ public:
 		ERR_FAIL_NULL_V(light, RS::LIGHT_DIRECTIONAL);
 
 		return TextureStorage::get_singleton()->owns_texture(light->projector);
+	}
+
+	virtual bool light_has_contact_shadow(RID p_light) const override { 
+		const Light *light = light_owner.get_or_null(p_light);
+		ERR_FAIL_NULL_V(light, RS::LIGHT_DIRECTIONAL);
+		return light->contact_shadow;
 	}
 
 	_FORCE_INLINE_ bool light_is_negative(RID p_light) const {

@@ -418,6 +418,28 @@ void RendererSceneCull::_instance_unpair(Instance *p_A, Instance *p_B) {
 	}
 }
 
+void RendererSceneCull::_insert_trace_shadow_light(const RendererSceneRender::RenderTraceShadowData &p_data) {
+	// insert into free slots if avalible
+	if (max_trace_shadows_used < MAX_TRACE_SHADOWS) {
+		render_trace_shadow_data[max_trace_shadows_used] = p_data;
+		max_trace_shadows_used++;
+		return;
+	}
+
+	// find a lower priority light to override
+	int lowest_slot = MAX_TRACE_SHADOWS;
+	float lowest_priority = FLT_MAX;
+	for (int i = 0; i < MAX_TRACE_SHADOWS; i++) {
+		if (render_trace_shadow_data[i].priority < lowest_priority) {
+			lowest_priority = render_trace_shadow_data[i].priority;
+			lowest_slot = i;
+		}
+	}
+	if (lowest_slot < MAX_TRACE_SHADOWS) {
+		render_trace_shadow_data[lowest_slot] = p_data;
+	}
+}
+
 RID RendererSceneCull::scenario_allocate() {
 	return scenario_owner.allocate_rid();
 }
@@ -1632,6 +1654,7 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 			light->max_sdfgi_cascade = max_sdfgi_cascade; //should most likely make sdfgi dirty in scenario
 		}
 		light->cull_mask = RSG::light_storage->light_get_cull_mask(p_instance->base);
+		light->uses_trace_shadow = RSG::light_storage->light_has_contact_shadow(p_instance->base);
 	} else if (p_instance->base_type == RS::INSTANCE_REFLECTION_PROBE) {
 		InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(p_instance->base_data);
 
@@ -3467,6 +3490,41 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 		scene_cull_result.light_instances.push_back(directional_lights[i]);
 	}
 
+	// build trace shadow list
+	max_trace_shadows_used = 0;
+	for (Instance *ins : scenario->directional_lights) {
+		InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
+		if (!light->uses_trace_shadow) {
+			continue;
+		}
+
+		// directional shadows are assumed to be more important than positional
+		float priority = (float)(light->trace_shadow_priority - 1);
+
+		RendererSceneRender::RenderTraceShadowData trace_data;
+		trace_data.light = ins->base;
+		trace_data.priority = priority;
+		_insert_trace_shadow_light(trace_data);
+	}
+
+	for (uint32_t i = 0; i < (uint32_t)scene_cull_result.lights.size(); i++) {
+		Instance *ins = scene_cull_result.lights[i];
+		InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
+		if (!light->uses_trace_shadow) {
+			continue;
+		}
+
+		// determine the positional light source's priority (needs better heuristics?)
+		float priority = (float)light->trace_shadow_priority;
+		real_t distance = ins->transform.origin.distance_to(camera_position);
+		priority += distance * 0.01f;
+
+		RendererSceneRender::RenderTraceShadowData trace_data;
+		trace_data.light = ins->base;
+		trace_data.priority = priority;
+		_insert_trace_shadow_light(trace_data);
+	}
+
 	RID camera_attributes;
 	if (p_force_camera_attributes.is_valid()) {
 		camera_attributes = p_force_camera_attributes;
@@ -3484,7 +3542,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 	}
 
 	RENDER_TIMESTAMP("Render 3D Scene");
-	scene_render->render_scene(p_render_buffers, p_camera_data, prev_camera_data, scene_cull_result.geometry_instances, scene_cull_result.light_instances, scene_cull_result.reflections, scene_cull_result.voxel_gi_instances, scene_cull_result.decals, scene_cull_result.lightmaps, scene_cull_result.fog_volumes, p_environment, camera_attributes, p_compositor, p_shadow_atlas, occluders_tex, p_reflection_probe.is_valid() ? RID() : scenario->reflection_atlas, p_reflection_probe, p_reflection_probe_pass, p_screen_mesh_lod_threshold, render_shadow_data, max_shadows_used, render_sdfgi_data, cull.sdfgi.region_count, &sdfgi_update_data, r_render_info);
+	scene_render->render_scene(p_render_buffers, p_camera_data, prev_camera_data, scene_cull_result.geometry_instances, scene_cull_result.light_instances, scene_cull_result.reflections, scene_cull_result.voxel_gi_instances, scene_cull_result.decals, scene_cull_result.lightmaps, scene_cull_result.fog_volumes, p_environment, camera_attributes, p_compositor, p_shadow_atlas, occluders_tex, p_reflection_probe.is_valid() ? RID() : scenario->reflection_atlas, p_reflection_probe, p_reflection_probe_pass, p_screen_mesh_lod_threshold, render_shadow_data, max_shadows_used, render_trace_shadow_data, max_trace_shadows_used, render_sdfgi_data, cull.sdfgi.region_count, &sdfgi_update_data, r_render_info);
 
 	if (p_viewport.is_valid()) {
 		RSG::viewport->viewport_set_prev_camera_data(p_viewport, p_camera_data);
@@ -3551,7 +3609,7 @@ void RendererSceneCull::render_empty_scene(const Ref<RenderSceneBuffers> &p_rend
 	RendererSceneRender::CameraData camera_data;
 	camera_data.set_camera(Transform3D(), Projection(), true, false, false);
 
-	scene_render->render_scene(p_render_buffers, &camera_data, &camera_data, PagedArray<RenderGeometryInstance *>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), environment, RID(), compositor, p_shadow_atlas, RID(), scenario->reflection_atlas, RID(), 0, 0, nullptr, 0, nullptr, 0, nullptr);
+	scene_render->render_scene(p_render_buffers, &camera_data, &camera_data, PagedArray<RenderGeometryInstance *>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), environment, RID(), compositor, p_shadow_atlas, RID(), scenario->reflection_atlas, RID(), 0, 0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr);
 #endif
 }
 

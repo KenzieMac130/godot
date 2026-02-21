@@ -88,6 +88,10 @@ public:
 	LocalVector<int> shadows;
 	LocalVector<int> directional_shadows;
 
+	/* Trace Shadow data */
+	const RendererSceneRender::RenderTraceShadowData *render_trace_shadows = nullptr;
+	int render_trace_shadow_count = 0;
+	
 	/* GI info */
 	const RendererSceneRender::RenderSDFGIData *render_sdfgi_regions = nullptr;
 	int render_sdfgi_region_count = 0;
