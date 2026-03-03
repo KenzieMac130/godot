@@ -35,6 +35,22 @@
 		</method>
 	</methods>
 	<members>
+		<member name="contact_shadows_enabled" type="bool" setter="set_contact_shadow" getter="get_contact_shadow" default="false">
+			If [code]true[/code], the light will render screen-space contact shadows. This can be used alongside shadow mapping to recover fine detail close range shadows and cover up problematic cases of "peter-panning".
+		</member>
+		<member name="contact_shadows_edge_tolerance" type="float" setter="set_param" getter="get_param" default="0.02">
+			The threshold which determines if a pixel contains an edge. If two samples have a difference of depth greater than this threshold then it shall be considered a hard edge. 
+		</member>
+		<member name="contact_shadows_ignore_edges" type="bool" setter="set_contact_shadows_ignore_edges" getter="get_contact_shadows_ignore_edges" default="false">
+			If [code]true[/code], the contact shadow accumulation will ignore hard edges as determined by [member contact_shadows_edge_tolerance]. This can reduce stair-stepping artifacts on large flat surfaces on some extreme angles at the cost of thinning fine details.
+			[b]Note:[/b] (//Todo: Kenzie, mention bilinear sampling.) might help if this stair-stepping becomes a consistent issue throughout the project.
+		</member>
+		<member name="contact_shadows_power" type="float" setter="set_param" getter="get_param" default="4.0">
+			The overall contrast of contact shadows. // Todo: Kenzie, more full description based on behavior
+		</member>
+		<member name="contact_shadows_thickness" type="float" setter="set_param" getter="get_param" default="0.05">
+			The thickness of geometry. // Todo: Kenzie, more full description based on behavior
+		</member>
 		<member name="distance_fade_begin" type="float" setter="set_distance_fade_begin" getter="get_distance_fade_begin" default="40.0" keywords="lod_begin">
 			The distance from the camera at which the light begins to fade away (in 3D units).
 			[b]Note:[/b] Only effective for [OmniLight3D] and [SpotLight3D].
@@ -198,7 +214,16 @@
 		<constant name="PARAM_INTENSITY" value="20" enum="Param">
 			Constant for accessing [member light_intensity_lumens] and [member light_intensity_lux]. Only used when [member ProjectSettings.rendering/lights_and_shadows/use_physical_light_units] is [code]true[/code].
 		</constant>
-		<constant name="PARAM_MAX" value="21" enum="Param">
+		<constant name="PARAM_CONTACT_SHADOWS_THICKNESS" value="21" enum="Param">
+			Constant for accessing [member contact_shadows_power].
+		</constant>
+		<constant name="PARAM_CONTACT_SHADOWS_EDGE_TOLERANCE" value="22" enum="Param">
+			Constant for accessing [member contact_shadows_edge_tolerance].
+		</constant>
+		<constant name="PARAM_CONTACT_SHADOWS_POWER" value="23" enum="Param">
+			Constant for accessing [member contact_shadows_power].
+		</constant>
+		<constant name="PARAM_MAX" value="24" enum="Param">
 			Represents the size of the [enum Param] enum.
 		</constant>
 		<constant name="BAKE_DISABLED" value="0" enum="BakeMode">

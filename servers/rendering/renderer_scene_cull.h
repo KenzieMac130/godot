@@ -1010,6 +1010,8 @@ public:
 
 	RendererSceneRender::RenderTraceShadowData render_trace_shadow_data[MAX_TRACE_SHADOWS];
 	uint32_t max_trace_shadows_used = 0;
+	uint32_t max_trace_shadows_allowed = 8;
+	mutable bool trace_shadows_used = false; // Todo: Kenzie, use refcount!
 
 	RendererSceneRender::RenderSDFGIData render_sdfgi_data[SDFGI_MAX_CASCADES * SDFGI_MAX_REGIONS_PER_CASCADE];
 	RendererSceneRender::RenderSDFGIUpdateData sdfgi_update_data;

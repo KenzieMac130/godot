@@ -420,23 +420,23 @@ void RendererSceneCull::_instance_unpair(Instance *p_A, Instance *p_B) {
 
 void RendererSceneCull::_insert_trace_shadow_light(const RendererSceneRender::RenderTraceShadowData &p_data) {
 	// insert into free slots if avalible
-	if (max_trace_shadows_used < MAX_TRACE_SHADOWS) {
+	if (max_trace_shadows_used < max_trace_shadows_allowed) {
 		render_trace_shadow_data[max_trace_shadows_used] = p_data;
 		max_trace_shadows_used++;
 		return;
 	}
 
-	// find a lower priority light to override
-	int lowest_slot = MAX_TRACE_SHADOWS;
-	float lowest_priority = FLT_MAX;
-	for (int i = 0; i < MAX_TRACE_SHADOWS; i++) {
-		if (render_trace_shadow_data[i].priority < lowest_priority) {
-			lowest_priority = render_trace_shadow_data[i].priority;
-			lowest_slot = i;
+	// find a less important light to override
+	uint32_t least_important_slot = max_trace_shadows_allowed;
+	float least_important_priority = -FLT_MAX;
+	for (uint32_t i = 0; i < max_trace_shadows_allowed; i++) {
+		if (render_trace_shadow_data[i].priority > least_important_priority) {
+			least_important_priority = render_trace_shadow_data[i].priority;
+			least_important_slot = i;
 		}
 	}
-	if (lowest_slot < MAX_TRACE_SHADOWS) {
-		render_trace_shadow_data[lowest_slot] = p_data;
+	if (least_important_slot < max_trace_shadows_allowed && least_important_priority > p_data.priority) {
+		render_trace_shadow_data[least_important_slot] = p_data;
 	}
 }
 
@@ -1655,6 +1655,10 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 		}
 		light->cull_mask = RSG::light_storage->light_get_cull_mask(p_instance->base);
 		light->uses_trace_shadow = RSG::light_storage->light_has_contact_shadow(p_instance->base);
+		if (light->uses_trace_shadow) {
+			trace_shadows_used = true;
+		}
+		light->trace_shadow_priority = 0; // Todo: Kenzie figure out better priority
 	} else if (p_instance->base_type == RS::INSTANCE_REFLECTION_PROBE) {
 		InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(p_instance->base_data);
 
@@ -3492,37 +3496,39 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 
 	// build trace shadow list
 	max_trace_shadows_used = 0;
-	for (Instance *ins : scenario->directional_lights) {
-		InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
-		if (!light->uses_trace_shadow) {
-			continue;
+	if (p_using_shadows && trace_shadows_used) {
+		for (Instance *ins : scenario->directional_lights) {
+			InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
+			if (!light->uses_trace_shadow) {
+				continue;
+			}
+
+			// directional shadows are assumed to be more important than positional
+			float priority = (float)(light->trace_shadow_priority - 1);
+
+			RendererSceneRender::RenderTraceShadowData trace_data;
+			trace_data.light = ins->base;
+			trace_data.priority = priority;
+			_insert_trace_shadow_light(trace_data);
 		}
 
-		// directional shadows are assumed to be more important than positional
-		float priority = (float)(light->trace_shadow_priority - 1);
+		for (uint32_t i = 0; i < (uint32_t)scene_cull_result.lights.size(); i++) {
+			Instance *ins = scene_cull_result.lights[i];
+			InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
+			if (!light->uses_trace_shadow) {
+				continue;
+			}
 
-		RendererSceneRender::RenderTraceShadowData trace_data;
-		trace_data.light = ins->base;
-		trace_data.priority = priority;
-		_insert_trace_shadow_light(trace_data);
-	}
+			// determine the positional light source's priority (needs better heuristics?)
+			float priority = (float)light->trace_shadow_priority;
+			real_t distance = ins->transform.origin.distance_to(camera_position);
+			priority += distance * 0.01f;
 
-	for (uint32_t i = 0; i < (uint32_t)scene_cull_result.lights.size(); i++) {
-		Instance *ins = scene_cull_result.lights[i];
-		InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
-		if (!light->uses_trace_shadow) {
-			continue;
+			RendererSceneRender::RenderTraceShadowData trace_data;
+			trace_data.light = ins->base;
+			trace_data.priority = priority;
+			_insert_trace_shadow_light(trace_data);
 		}
-
-		// determine the positional light source's priority (needs better heuristics?)
-		float priority = (float)light->trace_shadow_priority;
-		real_t distance = ins->transform.origin.distance_to(camera_position);
-		priority += distance * 0.01f;
-
-		RendererSceneRender::RenderTraceShadowData trace_data;
-		trace_data.light = ins->base;
-		trace_data.priority = priority;
-		_insert_trace_shadow_light(trace_data);
 	}
 
 	RID camera_attributes;
@@ -4354,6 +4360,8 @@ RendererSceneCull::RendererSceneCull() {
 	bool tighter_caster_culling = GLOBAL_DEF("rendering/lights_and_shadows/tighter_shadow_caster_culling", true);
 	light_culler->set_caster_culling_active(tighter_caster_culling);
 	light_culler->set_light_culling_active(tighter_caster_culling);
+
+	max_trace_shadows_allowed = MIN((uint32_t)(GLOBAL_GET("rendering/lights_and_shadows/contact_shadow/max_contact_shadows")), (uint32_t)MAX_TRACE_SHADOWS);
 }
 
 RendererSceneCull::~RendererSceneCull() {

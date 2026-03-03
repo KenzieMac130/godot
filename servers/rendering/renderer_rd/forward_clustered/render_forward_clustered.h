@@ -767,7 +767,7 @@ private:
 	void _copy_framebuffer_to_ss_effects(Ref<RenderSceneBuffersRD> p_render_buffers, bool p_use_ssil, bool p_use_ssr);
 	void _pre_opaque_render(RenderDataRD *p_render_data, bool p_use_ssao, bool p_use_ssil, bool p_use_ssr, bool p_use_gi, bool p_use_contact_shadows, const RID *p_normal_roughness_slices, RID p_voxel_gi_buffer);
 	void _process_sss(Ref<RenderSceneBuffersRD> p_render_buffers, const Projection &p_camera);
-	void _process_contact_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, const Projection *p_projections);
+	void _process_contact_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, uint32_t slot, const RenderTraceShadowData* p_trace_shadow_target, const Projection *p_projections);
 
 	/* Debug */
 	void _debug_draw_cluster(Ref<RenderSceneBuffersRD> p_render_buffers);

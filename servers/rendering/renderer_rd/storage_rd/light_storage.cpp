@@ -341,11 +341,11 @@ void LightStorage::light_set_contact_shadow(RID p_light, bool p_enable) {
 	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
 }
 
-void LightStorage::light_set_contact_shadows_priority(RID p_light, int32_t p_priority) {
-	Light *light = light_owner.get_or_null(p_light);
+void LightStorage::light_set_contact_shadows_ignore_edges(RID p_light, bool p_ignore) {
+	Light* light = light_owner.get_or_null(p_light);
 	ERR_FAIL_NULL(light);
 
-	light->contact_shadows_priority = p_priority;
+	light->contact_shadow_ignore_edges = p_ignore;
 
 	light->version++;
 	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
@@ -658,6 +658,10 @@ void LightStorage::update_light_buffers(RenderDataRD *p_render_data, const Paged
 
 				DirectionalLightData &light_data = directional_lights[r_directional_light_count];
 
+				if(light->contact_shadow) {
+					// todo: Kenzie, map the contact shadow
+				}
+
 				Transform3D light_transform = light_instance->transform;
 
 				Vector3 direction = inverse_transform.basis.xform(light_transform.basis.xform(Vector3(0, 0, 1))).normalized();
@@ -712,7 +716,7 @@ void LightStorage::update_light_buffers(RenderDataRD *p_render_data, const Paged
 					angular_diameter = 0.0;
 				}
 
-				light_data.bake_mode = light->bake_mode;
+				light_data.set_bake_mode(light->bake_mode);
 
 				if (light_data.shadow_opacity > 0.001) {
 					RS::LightDirectionalShadowMode smode = light->directional_shadow_mode;
@@ -858,6 +862,10 @@ void LightStorage::update_light_buffers(RenderDataRD *p_render_data, const Paged
 			forward_id_storage->map_forward_id(type == RS::LIGHT_OMNI ? RendererRD::FORWARD_ID_TYPE_OMNI_LIGHT : RendererRD::FORWARD_ID_TYPE_SPOT_LIGHT, light_instance->forward_id, index, light_instance->last_pass);
 		}
 
+		if(light->contact_shadow) {
+			// todo: Kenzie, map contact shadow
+		}
+
 		Transform3D light_transform = light_instance->transform;
 
 		float sign = light->negative ? -1 : 1;
@@ -913,7 +921,7 @@ void LightStorage::update_light_buffers(RenderDataRD *p_render_data, const Paged
 		light_data.color[2] = linear_col.b * energy;
 		light_data.specular_amount = light->param[RS::LIGHT_PARAM_SPECULAR] * 2.0;
 		light_data.volumetric_fog_energy = light->param[RS::LIGHT_PARAM_VOLUMETRIC_FOG_ENERGY];
-		light_data.bake_mode = light->bake_mode;
+		light_data.set_bake_mode(light->bake_mode);
 
 		float radius = MAX(0.001, light->param[RS::LIGHT_PARAM_RANGE]);
 		light_data.inv_radius = 1.0 / radius;

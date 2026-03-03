@@ -79,7 +79,7 @@ private:
 	uint32_t cull_mask = 0;
 	uint32_t shadow_caster_mask = 0xFFFFFFFF;
 	bool contact_shadow = false;
-	int32_t contact_shadows_priority = 0;
+	bool contact_shadows_ignore_edges = false;
 	bool distance_fade_enabled = false;
 	real_t distance_fade_begin = 40.0;
 	real_t distance_fade_shadow = 50.0;
@@ -147,8 +147,8 @@ public:
 	void set_contact_shadow(bool p_enable);
 	bool has_contact_shadow() const;
 
-	void set_contact_shadows_priority(int32_t p_priority);
-	int32_t get_contact_shadows_priority() const;
+	void set_contact_shadows_ignore_edges(bool p_ignore);
+	bool get_contact_shadows_ignore_edges() const;
 
 	void set_bake_mode(BakeMode p_mode);
 	BakeMode get_bake_mode() const;

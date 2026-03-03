@@ -172,7 +172,7 @@ public:
 	void contact_shadows_set_quality(RS::ContactShadowQuality p_quality);
 
 	void trace_shadows_allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_shadow_trace_buffers);
-	void contact_shadows_render(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadows_buffers, uint32_t p_view, const Projection &p_projection);
+	void contact_shadows_render(Ref<RenderSceneBuffersRD> p_render_buffers, TraceShadowsRenderBuffers &p_trace_shadows_buffers, uint32_t p_slot, RID p_light, uint32_t p_view, const Projection &p_projection);
 
 private:
 	/* Settings */
@@ -198,6 +198,8 @@ private:
 	float sss_depth_scale = 0.01;
 
 	RS::ContactShadowQuality contact_shadows_quality = RS::CONTACT_SHADOWS_QUALITY_MEDIUM;
+	bool contact_shadows_bilinear_sampling_offset = false;
+	bool contact_shadows_ignore_edges = false;
 
 	/* SS Downsampler */
 
@@ -557,13 +559,16 @@ private:
 		float camera_z_far;
 		float camera_z_near;
 
-		uint32_t vertical;
-		uint32_t orthogonal;
-		float unit_size;
-		float scale;
+		float surface_thickness;
+		float bilinear_threshold;
+		float contrast;
+		uint32_t ignore_edges;
 
-		float depth_scale;
-		uint32_t pad[3];
+		float light_depth_near;
+		float light_depth_far;
+		uint32_t wavefront_offset[2];
+
+		float light_origin[4];
 	};
 
 	struct ContactShadows {

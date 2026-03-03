@@ -581,7 +581,7 @@ public:
 	virtual void light_set_shadow_caster_mask(RID p_light, uint32_t p_caster_mask) = 0;
 
 	virtual void light_set_contact_shadow(RID p_light, bool p_enable) = 0;
-	virtual void light_set_contact_shadows_priority(RID p_light, int32_t p_priority) = 0;
+	virtual void light_set_contact_shadows_ignore_edges(RID p_light, bool p_ignore) = 0;
 
 	enum LightBakeMode {
 		LIGHT_BAKE_DISABLED,
@@ -1402,7 +1402,6 @@ public:
 	virtual void sub_surface_scattering_set_scale(float p_scale, float p_depth_scale) = 0;
 
 	enum ContactShadowQuality {
-		CONTACT_SHADOWS_QUALITY_DISABLED,
 		CONTACT_SHADOWS_QUALITY_LOW,
 		CONTACT_SHADOWS_QUALITY_MEDIUM,
 		CONTACT_SHADOWS_QUALITY_HIGH

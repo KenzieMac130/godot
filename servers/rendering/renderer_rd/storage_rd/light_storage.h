@@ -81,7 +81,7 @@ private:
 		bool directional_blend_splits = false;
 		RS::LightDirectionalSkyMode directional_sky_mode = RS::LIGHT_DIRECTIONAL_SKY_MODE_LIGHT_AND_SKY;
 		bool contact_shadow = false;
-		int32_t contact_shadows_priority = 0;
+		bool contact_shadow_ignore_edges = false;
 		uint64_t version = 0;
 
 		Dependency dependency;
@@ -160,8 +160,16 @@ private:
 		float soft_shadow_scale;
 		uint32_t mask;
 		float volumetric_fog_energy;
-		uint32_t bake_mode;
+		uint32_t bake_mode_and_trace_id; // todo: kenzie pack trace shadow ID
 		float projector_rect[4];
+
+		inline void set_bake_mode(uint32_t p_bake_mode) {
+			bake_mode_and_trace_id = p_bake_mode;
+		}
+
+		inline void set_trace_id(uint32_t p_trace_id) {
+			// todo: Kenzie
+		}
 	};
 
 	struct LightInstanceDepthSort {
@@ -199,7 +207,7 @@ private:
 		float fade_from;
 		float fade_to;
 		uint32_t pad[2];
-		uint32_t bake_mode;
+		uint32_t bake_mode_and_trace_id;
 		float volumetric_fog_energy;
 		float shadow_bias[4];
 		float shadow_normal_bias[4];
@@ -212,6 +220,14 @@ private:
 		float uv_scale2[2];
 		float uv_scale3[2];
 		float uv_scale4[2];
+
+		inline void set_bake_mode(uint32_t p_bake_mode) {
+			bake_mode_and_trace_id = p_bake_mode;
+		}
+
+		inline void set_trace_id(uint32_t p_trace_id) {
+			// todo: Kenzie
+		}
 	};
 
 	uint32_t max_directional_lights;
@@ -502,7 +518,7 @@ public:
 	virtual void light_set_max_sdfgi_cascade(RID p_light, uint32_t p_cascade) override;
 
 	virtual void light_set_contact_shadow(RID p_light, bool p_enable) override;
-	virtual void light_set_contact_shadows_priority(RID p_light, int32_t p_priority) override;
+	virtual void light_set_contact_shadows_ignore_edges(RID p_light, bool p_ignore) override;
 
 	virtual void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) override;
 

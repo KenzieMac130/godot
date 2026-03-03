@@ -3709,6 +3709,7 @@ void RenderingServer::init() {
 	GLOBAL_DEF("rendering/lights_and_shadows/directional_shadow/soft_shadow_filter_quality.mobile", 0);
 	GLOBAL_DEF("rendering/lights_and_shadows/directional_shadow/16_bits", true);
 
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/lights_and_shadows/contact_shadow/contact_shadows_quality", PROPERTY_HINT_ENUM, "Low (Fast),Medium (Average),High (Slow)"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/lights_and_shadows/contact_shadow/max_contact_shadows", PROPERTY_HINT_RANGE, "0,8,1"), 3);
 	GLOBAL_DEF_RST(PropertyInfo(Variant::BOOL, "rendering/lights_and_shadows/contact_shadow/bilinear_sampling_offset"), false);
 

@@ -463,8 +463,8 @@ public:
 	FUNC2(light_set_bake_mode, RID, LightBakeMode)
 	FUNC2(light_set_max_sdfgi_cascade, RID, uint32_t)
 
-	FUNC2(light_set_contact_shadow, RID, bool);
-	FUNC2(light_set_contact_shadows_priority, RID, int32_t)
+	FUNC2(light_set_contact_shadow, RID, bool)
+	FUNC2(light_set_contact_shadows_ignore_edges, RID, bool)
 
 	FUNC2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
 

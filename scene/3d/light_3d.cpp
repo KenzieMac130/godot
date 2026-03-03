@@ -163,13 +163,13 @@ bool Light3D::has_contact_shadow() const {
 	return contact_shadow;
 }
 
-void Light3D::set_contact_shadows_priority(int32_t p_priority) {
-	contact_shadows_priority = p_priority;
-	RS::get_singleton()->light_set_contact_shadows_priority(light, contact_shadows_priority);
+void Light3D::set_contact_shadows_ignore_edges(bool p_ignore) {
+	contact_shadows_ignore_edges = p_ignore;
+	RS::get_singleton()->light_set_contact_shadows_ignore_edges(light, contact_shadows_ignore_edges);
 }
 
-int32_t Light3D::get_contact_shadows_priority() const {
-	return contact_shadows_priority;
+bool Light3D::get_contact_shadows_ignore_edges() const {
+	return contact_shadows_ignore_edges;
 }
 
 AABB Light3D::get_aabb() const {
@@ -392,8 +392,8 @@ void Light3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_contact_shadow", "enabled"), &Light3D::set_contact_shadow);
 	ClassDB::bind_method(D_METHOD("has_contact_shadow"), &Light3D::has_contact_shadow);
 
-	ClassDB::bind_method(D_METHOD("set_contact_shadows_priority", "priority"), &Light3D::set_contact_shadows_priority);
-	ClassDB::bind_method(D_METHOD("get_contact_shadows_priority"), &Light3D::get_contact_shadows_priority);
+	ClassDB::bind_method(D_METHOD("set_contact_shadows_ignore_edges", "ignore"), &Light3D::set_contact_shadows_ignore_edges);
+	ClassDB::bind_method(D_METHOD("get_contact_shadows_ignore_edges"), &Light3D::get_contact_shadows_ignore_edges);
 
 	ClassDB::bind_method(D_METHOD("set_bake_mode", "bake_mode"), &Light3D::set_bake_mode);
 	ClassDB::bind_method(D_METHOD("get_bake_mode"), &Light3D::get_bake_mode);
@@ -434,10 +434,10 @@ void Light3D::_bind_methods() {
 	
 	ADD_SUBGROUP("Contact Shadow", "contact_shadows_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "contact_shadows_enabled", PROPERTY_HINT_GROUP_ENABLE), "set_contact_shadow", "has_contact_shadow");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "contact_shadows_priority"), "set_contact_shadows_priority", "get_contact_shadows_priority");
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadows_power", PROPERTY_HINT_RANGE, "1,16,0.1"), "set_param", "get_param", PARAM_CONTACT_SHADOWS_POWER);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadows_thickness", PROPERTY_HINT_RANGE, "0.01,1.0,0.01"), "set_param", "get_param", PARAM_CONTACT_SHADOWS_THICKNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadows_edge_tolerance", PROPERTY_HINT_RANGE, "0.01,1.0,0.01"), "set_param", "get_param", PARAM_CONTACT_SHADOWS_EDGE_TOLERANCE);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "contact_shadows_power", PROPERTY_HINT_RANGE, "1,16,0.1"), "set_param", "get_param", PARAM_CONTACT_SHADOWS_POWER);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "contact_shadows_ignore_edges"), "set_contact_shadows_ignore_edges", "get_contact_shadows_ignore_edges");
 
 	ADD_GROUP("Distance Fade", "distance_fade_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "distance_fade_enabled", PROPERTY_HINT_GROUP_ENABLE), "set_enable_distance_fade", "is_distance_fade_enabled");
@@ -471,6 +471,9 @@ void Light3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(PARAM_SHADOW_BLUR);
 	BIND_ENUM_CONSTANT(PARAM_TRANSMITTANCE_BIAS);
 	BIND_ENUM_CONSTANT(PARAM_INTENSITY);
+	BIND_ENUM_CONSTANT(PARAM_CONTACT_SHADOWS_THICKNESS);
+	BIND_ENUM_CONSTANT(PARAM_CONTACT_SHADOWS_EDGE_TOLERANCE);
+	BIND_ENUM_CONSTANT(PARAM_CONTACT_SHADOWS_POWER);
 	BIND_ENUM_CONSTANT(PARAM_MAX);
 
 	BIND_ENUM_CONSTANT(BAKE_DISABLED);

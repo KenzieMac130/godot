@@ -1494,6 +1494,37 @@ void RenderForwardClustered::_pre_opaque_render(RenderDataRD *p_render_data, boo
 	RendererRD::LightStorage *light_storage = RendererRD::LightStorage::get_singleton();
 	RendererRD::TextureStorage *texture_storage = RendererRD::TextureStorage::get_singleton();
 
+	if (current_cluster_builder) {
+		// Note: when rendering stereoscopic (multiview) we are using our combined frustum projection to create
+		// our cluster data. We use reprojection in the shader to adjust for our left/right eye.
+		// This only works as we don't filter our cluster by depth buffer.
+		// If we ever make this optimization we should make it optional and only use it in mono.
+		// What we win by filtering out a few lights, we loose by having to do the work double for stereo.
+		current_cluster_builder->begin(p_render_data->scene_data->cam_transform, p_render_data->scene_data->cam_projection, !p_render_data->reflection_probe.is_valid());
+	}
+
+	bool using_shadows = true;
+
+	if (p_render_data->reflection_probe.is_valid()) {
+		if (!RSG::light_storage->reflection_probe_renders_shadows(light_storage->reflection_probe_instance_get_probe(p_render_data->reflection_probe))) {
+			using_shadows = false;
+		}
+	} else {
+		//do not render reflections when rendering a reflection probe
+		light_storage->update_reflection_probe_buffer(p_render_data, *p_render_data->reflection_probes, p_render_data->scene_data->cam_transform.affine_inverse(), p_render_data->environment);
+	}
+
+	uint32_t directional_light_count = 0;
+	uint32_t positional_light_count = 0;
+	light_storage->update_light_buffers(p_render_data, *p_render_data->lights, p_render_data->scene_data->cam_transform, p_render_data->shadow_atlas, using_shadows, directional_light_count, positional_light_count, p_render_data->directional_light_soft_shadows);
+	texture_storage->update_decal_buffer(*p_render_data->decals, p_render_data->scene_data->cam_transform);
+
+	p_render_data->directional_light_count = directional_light_count;
+
+	if (current_cluster_builder) {
+		current_cluster_builder->bake_cluster();
+	}
+
 	Ref<RenderSceneBuffersRD> rb = p_render_data->render_buffers;
 	Ref<RenderBufferDataForwardClustered> rb_data;
 	if (rb.is_valid() && rb->has_custom_data(RB_SCOPE_FORWARD_CLUSTERED)) {
@@ -1607,7 +1638,9 @@ void RenderForwardClustered::_pre_opaque_render(RenderDataRD *p_render_data, boo
 			}
 
 			if (p_use_contact_shadows) {
-				_process_contact_shadows(rb, p_render_data->scene_data->view_projection);
+				for (int i = 0; i < p_render_data->render_trace_shadow_count; i++) {
+					_process_contact_shadows(rb, i, &p_render_data->render_trace_shadows[i], p_render_data->scene_data->view_projection);
+				}
 			}
 		}
 
@@ -1617,37 +1650,6 @@ void RenderForwardClustered::_pre_opaque_render(RenderDataRD *p_render_data, boo
 	}
 
 	RENDER_TIMESTAMP("Pre Opaque Render");
-
-	if (current_cluster_builder) {
-		// Note: when rendering stereoscopic (multiview) we are using our combined frustum projection to create
-		// our cluster data. We use reprojection in the shader to adjust for our left/right eye.
-		// This only works as we don't filter our cluster by depth buffer.
-		// If we ever make this optimization we should make it optional and only use it in mono.
-		// What we win by filtering out a few lights, we loose by having to do the work double for stereo.
-		current_cluster_builder->begin(p_render_data->scene_data->cam_transform, p_render_data->scene_data->cam_projection, !p_render_data->reflection_probe.is_valid());
-	}
-
-	bool using_shadows = true;
-
-	if (p_render_data->reflection_probe.is_valid()) {
-		if (!RSG::light_storage->reflection_probe_renders_shadows(light_storage->reflection_probe_instance_get_probe(p_render_data->reflection_probe))) {
-			using_shadows = false;
-		}
-	} else {
-		//do not render reflections when rendering a reflection probe
-		light_storage->update_reflection_probe_buffer(p_render_data, *p_render_data->reflection_probes, p_render_data->scene_data->cam_transform.affine_inverse(), p_render_data->environment);
-	}
-
-	uint32_t directional_light_count = 0;
-	uint32_t positional_light_count = 0;
-	light_storage->update_light_buffers(p_render_data, *p_render_data->lights, p_render_data->scene_data->cam_transform, p_render_data->shadow_atlas, using_shadows, directional_light_count, positional_light_count, p_render_data->directional_light_soft_shadows);
-	texture_storage->update_decal_buffer(*p_render_data->decals, p_render_data->scene_data->cam_transform);
-
-	p_render_data->directional_light_count = directional_light_count;
-
-	if (current_cluster_builder) {
-		current_cluster_builder->bake_cluster();
-	}
 
 	if (rb_data.is_valid()) {
 		RENDER_TIMESTAMP("Update Volumetric Fog");
@@ -1676,7 +1678,7 @@ void RenderForwardClustered::_process_sss(Ref<RenderSceneBuffersRD> p_render_buf
 	}
 }
 
-void RenderForwardClustered::_process_contact_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, const Projection *p_projections) {
+void RenderForwardClustered::_process_contact_shadows(Ref<RenderSceneBuffersRD> p_render_buffers, uint32_t p_slot, const RenderTraceShadowData* p_trace_shadow_target, const Projection *p_projections) {
 	ERR_FAIL_NULL(ss_effects);
 	ERR_FAIL_COND(p_render_buffers.is_null());
 
@@ -1685,9 +1687,10 @@ void RenderForwardClustered::_process_contact_shadows(Ref<RenderSceneBuffersRD> 
 
 	RENDER_TIMESTAMP("Contact Shadows");
 
-	ss_effects->trace_shadows_allocate_buffers(p_render_buffers, rb_data->ss_effects_data.shadows);
-
-	// Todo: Kenzie render the shadows
+	ss_effects->trace_shadows_allocate_buffers(p_render_buffers, rb_data->ss_effects_data.shadows); 
+	for (uint32_t v = 0; v < p_render_buffers->get_view_count(); v++) {
+		ss_effects->contact_shadows_render(p_render_buffers, rb_data->ss_effects_data.shadows, p_slot, p_trace_shadow_target->light, v, p_projections[v]);
+	}
 }
 
 void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Color &p_default_bg_color) {
@@ -2104,7 +2107,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 	bool using_ssao = depth_pre_pass && !is_reflection_probe && p_render_data->environment.is_valid() && environment_get_ssao_enabled(p_render_data->environment);
 
-	bool using_contact_shadows = depth_pre_pass && scene_state.used_contact_shadows;
+	bool using_contact_shadows = depth_pre_pass && p_render_data->render_trace_shadow_count > 0;
 
 	if (depth_pre_pass) { //depth pre pass
 		bool needs_pre_resolve = _needs_post_prepass_render(p_render_data, using_sdfgi || using_voxelgi);
@@ -2582,7 +2585,7 @@ void RenderForwardClustered::_render_buffers_debug_draw(const RenderDataRD *p_re
 	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_TRACE_SHADOWS && rb->has_texture(RB_SCOPE_TRACE_SHADOWS, RB_FINAL)) {
 		RID final = rb->get_texture_slice(RB_SCOPE_TRACE_SHADOWS, RB_FINAL, 0, 0);
 		Size2i rtsize = texture_storage->render_target_get_size(render_target);
-		//copy_effects->copy_to_fb_rect(final, texture_storage->render_target_get_rd_framebuffer(render_target), Rect2(Vector2(), rtsize), false, false, false, false, RID(), false, false, false, false, Rect2(), 1.0f, true);
+		copy_effects->copy_to_fb_rect(final, texture_storage->render_target_get_rd_framebuffer(render_target), Rect2(Vector2(), rtsize), false, false, false, false, RID(), false, false, false, false, Rect2(), 1.0f);
 		// todo: Kenzie (implement trace shadows debug visualizer)
 	}
 
@@ -3948,7 +3951,7 @@ void RenderForwardClustered::sub_surface_scattering_set_scale(float p_scale, flo
 
 void RenderForwardClustered::contact_shadows_set_quality(RS::ContactShadowQuality p_quality) {
 	ERR_FAIL_NULL(ss_effects);
-	ERR_FAIL_COND(p_quality < RS::ContactShadowQuality::CONTACT_SHADOWS_QUALITY_DISABLED || p_quality > RS::ContactShadowQuality::CONTACT_SHADOWS_QUALITY_HIGH);
+	ERR_FAIL_COND(p_quality < RS::ContactShadowQuality::CONTACT_SHADOWS_QUALITY_LOW || p_quality > RS::ContactShadowQuality::CONTACT_SHADOWS_QUALITY_HIGH);
 	ss_effects->contact_shadows_set_quality(p_quality);
 }
 

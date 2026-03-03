@@ -577,7 +577,7 @@ void vertex_shader(vec3 vertex_input,
 					continue; //not masked
 				}
 
-				if (omni_lights.data[light_index].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+				if (LIGHT_DATA_BAKE_MODE(omni_lights.data[light_index]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
@@ -612,7 +612,7 @@ void vertex_shader(vec3 vertex_input,
 					continue; //not masked
 				}
 
-				if (spot_lights.data[light_index].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+				if (LIGHT_DATA_BAKE_MODE(spot_lights.data[light_index]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
@@ -633,7 +633,7 @@ void vertex_shader(vec3 vertex_input,
 				continue; // Not masked, skip.
 			}
 
-			if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+			if (LIGHT_DATA_BAKE_MODE(directional_lights.data[i]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 				continue; // Statically baked light and object uses lightmap, skip.
 			}
 			if (i == 0) {
@@ -2281,7 +2281,7 @@ void fragment_shader(in SceneData scene_data) {
 					continue; //not masked
 				}
 
-				if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+				if (LIGHT_DATA_BAKE_MODE(directional_lights.data[i]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
@@ -2523,7 +2523,7 @@ void fragment_shader(in SceneData scene_data) {
 				continue; //not masked
 			}
 
-			if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+			if (LIGHT_DATA_BAKE_MODE(directional_lights.data[i]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 				continue; // Statically baked light and object uses lightmap, skip
 			}
 
@@ -2674,7 +2674,7 @@ void fragment_shader(in SceneData scene_data) {
 					continue; //not masked
 				}
 
-				if (omni_lights.data[light_index].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+				if (LIGHT_DATA_BAKE_MODE(omni_lights.data[light_index]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
@@ -2735,7 +2735,7 @@ void fragment_shader(in SceneData scene_data) {
 					continue; //not masked
 				}
 
-				if (spot_lights.data[light_index].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+				if (LIGHT_DATA_BAKE_MODE(spot_lights.data[light_index]) == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 					continue; // Statically baked light and object uses lightmap, skip
 				}
 
