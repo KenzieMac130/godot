@@ -1,5 +1,9 @@
 # Godot Engine
 
+**⚠️ DO NOT MERGE! ⚠️**
+
+This is an expiremental proof of concept that breaks compatibility. The goal is to replace Godot's PBR implementation with OpenPBR to judge its viability in a future major version. This is a drastic expirement which is not suitable for production in it's current state.
+
 <p align="center">
   <a href="https://godotengine.org">
     <img src="logo_outlined.svg" width="400" alt="Godot Engine logo">
