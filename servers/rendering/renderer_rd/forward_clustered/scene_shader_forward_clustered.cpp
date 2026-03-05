@@ -745,12 +745,60 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 		actions.renames["NORMAL_MAP"] = "normal_map";
 		actions.renames["NORMAL_MAP_DEPTH"] = "normal_map_depth";
 		actions.renames["BENT_NORMAL_MAP"] = "bent_normal_map";
-		actions.renames["ALBEDO"] = "albedo_highp";
 		actions.renames["ALPHA"] = "alpha_highp";
 		actions.renames["PREMUL_ALPHA_FACTOR"] = "premul_alpha";
-		actions.renames["METALLIC"] = "metallic_highp";
-		actions.renames["SPECULAR"] = "specular";
-		actions.renames["ROUGHNESS"] = "roughness_highp";
+
+		// openpbr parameters
+		actions.renames["BASE_WEIGHT"] = "base_weight";
+		actions.renames["BASE_COLOR"] = "base_color";
+		actions.renames["BASE_METALNESS"] = "base_metalness";
+		actions.renames["BASE_DIFFUSE_ROUGHNESS"] = "base_diffuse_roughness";
+		actions.renames["SPECULAR_WEIGHT"] = "specular_weight";
+		actions.renames["SPECULAR_COLOR"] = "specular_color";
+		actions.renames["SPECULAR_ROUGHNESS"] = "specular_roughness";
+		actions.renames["SPECULAR_ROUGHNESS_ANISOTROPY"] = "specular_roughness_anisotropy";
+		actions.renames["SPECULAR_IOR"] = "specular_ior";
+		actions.renames["TRANSMISSION_WEIGHT"] = "transmission_weight";
+		actions.renames["TRANSMISSION_COLOR"] = "transmission_color";
+		actions.renames["TRANSMISSION_DEPTH"] = "transmission_depth";
+		actions.renames["TRANSMISSION_SCATTER"] = "transmission_scatter";
+		actions.renames["TRANSMISSION_SCATTER_ANISOTROPY"] = "transmission_scatter_anisotropy";
+		actions.renames["TRANSMISSION_DISPERSION_SCALE"] = "transmission_dispersion_scale";
+		actions.renames["TRANSMISSION_DISPERSION_ABBE_NUMBER"] = "transmission_dispersion_abbe_number";
+		actions.renames["SUBSURFACE_WEIGHT"] = "subsurface_weight";
+		actions.renames["SUBSURFACE_COLOR"] = "subsurface_color";
+		actions.renames["SUBSURFACE_RADIUS"] = "subsurface_radius";
+		actions.renames["SUBSURFACE_RADIUS_SCALE"] = "subsurface_radius_scale";
+		actions.renames["SUBSURFACE_SCATTER_ANISOTROPY"] = "subsurface_scatter_anisotropy";
+		actions.renames["COAT_WEIGHT"] = "coat_weight";
+		actions.renames["COAT_COLOR"] = "coat_color";
+		actions.renames["COAT_ROUGHNESS"] = "coat_roughness";
+		actions.renames["COAT_ROUGHNESS_ANISOTROPY"] = "coat_roughness_anisotropy";
+		actions.renames["COAT_IOR"] = "coat_ior";
+		actions.renames["COAT_DARKENING"] = "coat_darkening";
+		actions.renames["FUZZ_WEIGHT"] = "fuzz_weight";
+		actions.renames["FUZZ_COLOR"] = "fuzz_color";
+		actions.renames["FUZZ_ROUGHNESS"] = "fuzz_roughness";
+		actions.renames["EMISSION_LUMINANCE"] = "emission_luminance";
+		actions.renames["EMISSION_COLOR"] = "emission_color";
+		actions.renames["THIN_FILM_WEIGHT"] = "thin_film_weight";
+		actions.renames["THIN_FILM_THICKNESS"] = "thin_film_thickness";
+		actions.renames["THIN_FILM_IOR"] = "thin_film_ior";
+
+		// off-spec compromises on spec to better integrate with godot
+		actions.renames["THICKNESS"] = "thickness"; // needed for realtime SSS
+		actions.renames["SPECULAR_ANISOTROPY_FLOW"] = "specular_anisotropy_flow";
+		actions.renames["COAT_ANISOTROPY_FLOW"] = "coat_anisotropy_flow"; // openpbr coat expects it's own tangent
+		actions.renames["COAT_NORMAL_MAP"] = "coat_normal_map"; // openpbr coat expects it's own normal input
+		actions.renames["THIN_WALL_COLOR"] = "thin_wall_color"; // needed to replicate legacy backlight expectations
+
+		// todo: transmission closure
+
+		// godot legacy pbr compatibility
+		actions.renames["ALBEDO"] = "albedo_highp"; // base_color
+		actions.renames["METALLIC"] = "metallic_highp"; // base_metalness
+		actions.renames["SPECULAR"] = "specular"; // specular_weight conversion?
+		actions.renames["ROUGHNESS"] = "roughness_highp"; // specular_roughness
 		actions.renames["RIM"] = "rim";
 		actions.renames["RIM_TINT"] = "rim_tint";
 		actions.renames["CLEARCOAT"] = "clearcoat";
@@ -762,9 +810,10 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 		actions.renames["SSS_TRANSMITTANCE_DEPTH"] = "transmittance_depth";
 		actions.renames["SSS_TRANSMITTANCE_BOOST"] = "transmittance_boost";
 		actions.renames["BACKLIGHT"] = "backlight";
+		actions.renames["EMISSION"] = "emission";
+
 		actions.renames["AO"] = "ao";
 		actions.renames["AO_LIGHT_AFFECT"] = "ao_light_affect";
-		actions.renames["EMISSION"] = "emission";
 		actions.renames["POINT_COORD"] = "point_coord";
 		actions.renames["INSTANCE_CUSTOM"] = "instance_custom";
 		actions.renames["SCREEN_UV"] = "screen_uv";
